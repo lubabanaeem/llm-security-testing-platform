@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">LLM Security Tester Dashboard</h2>
+
+    <div class="row">
+
+        <!-- Left Panel -->
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-dark text-white">
+                    Run Test
+                </div>
+
+                <div class="card-body">
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        <!-- Model -->
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Model
+                            </label>
+
+                            <select name="model" class="form-select">
+
+                                <option value="" selected disabled>
+                                    Select Model
+                                </option>
+
+                                <option>gemma3</option>
+                                <option>qwen2.5</option>
+
+
+                            </select>
+
+                        </div>
+
+                        <!-- Attack Category -->
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Attack Category
+                            </label>
+
+                            <select id="categorySelect" name="category" class="form-select">
+
+                                <option value="">
+                                    Select Category
+                                </option>
+
+                                {% for category in categories %}
+
+                                <option value="{{ category }}">
+                                    {{ category }}
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        <!-- Attack -->
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Attack
+                            </label>
+
+                            <select id="attackSelect" name="attack" class="form-select">
+
+                                <option value="">
+                                    Select Attack
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Run Test Button -->
+                        <button type="submit" class="btn btn-success w-100" id="runTestBtn" disabled>
+                            Run Test
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Right Panel -->
+        <div class="col-lg-8">
+
+            <!-- LLM Response -->
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-primary text-white">
+                    LLM Response
+                </div>
+
+                <div class="card-body">
+
+                    {% if llm_response %}
+
+                    <pre class="mb-0" style="white-space: pre-wrap;">{{ llm_response }}</pre>
+
+                    {% else %}
+
+                    <p class="text-muted mb-0">
+                        Waiting for test...
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Recent Test Runs -->
+            <div class="card shadow-sm mt-4">
+
+                <div class="card-header bg-secondary text-white">
+                    Recent Test Runs
+                </div>
+
+                <div class="card-body">
+
+                    No tests executed yet.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Attack Filtering JavaScript -->
+
+<script>
+
+    const attacks = JSON.parse('{{ attacks_json|escapejs }}');
+
+    const modelSelect = document.querySelector('select[name="model"]');
+    const categorySelect = document.getElementById("categorySelect");
+    const attackSelect = document.getElementById("attackSelect");
+    const runTestBtn = document.getElementById("runTestBtn");
+
+    function checkFormComplete() {
+        const modelFilled = modelSelect.value !== "";
+        const categoryFilled = categorySelect.value !== "";
+        const attackFilled = attackSelect.value !== "";
+
+        runTestBtn.disabled = !(modelFilled && categoryFilled && attackFilled);
+    }
+
+    categorySelect.addEventListener("change", function () {
+
+        attackSelect.innerHTML =
+            '<option value="">Select Attack</option>';
+
+        const selectedCategory = this.value;
+
+        const filtered = attacks.filter(
+            attack => attack.category === selectedCategory
+        );
+
+        filtered.forEach(function (attack) {
+
+            const option =
+                document.createElement("option");
+
+            option.value = attack.id;
+
+            option.textContent = attack.name;
+
+            attackSelect.appendChild(option);
+
+        });
+
+        checkFormComplete();
+
+    });
+
+    modelSelect.addEventListener("change", checkFormComplete);
+    attackSelect.addEventListener("change", checkFormComplete);
+
+</script>
+
+{% endblock %}
