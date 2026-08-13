@@ -114,7 +114,8 @@
 
                     {% if llm_response %}
 
-                    <pre class="mb-0" style="white-space: pre-wrap;">{{ llm_response }}</pre>
+                    <pre class="mb-0"
+                        style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ llm_response }}</pre>
 
                     {% else %}
 

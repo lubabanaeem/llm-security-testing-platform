@@ -64,3 +64,17 @@ class Report(models.Model):
 
     def __str__(self):
         return self.report_title
+
+
+class BenchmarkCase(models.Model):
+    attack = models.ForeignKey(Attack, on_delete=models.CASCADE)
+    model = models.ForeignKey(Llm_model, on_delete=models.CASCADE)
+    response_text = models.TextField()
+    ground_truth_label = models.CharField(max_length=20, blank=True)
+    split = models.CharField(max_length=10, default="train")
+    notes = models.TextField(blank=True)
+    engine_prediction = models.CharField(max_length=20, blank=True, null=True)
+    date_collected = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Benchmark: {self.attack.attack_id} - {self.model.name}"
