@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+
+    <div class="border-bottom pb-3 mb-4">
+        <h4 class="fw-bold text-dark m-0">Test History</h4>
+        <small class="text-muted">Log of all executed security test runs</small>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="card border-secondary-subtle bg-light mb-4">
+        <div class="card-body py-3">
+            <form method="GET" action="" class="row g-2 align-items-center">
+
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control form-control-sm"
+                        placeholder="Search by attack ID or name..." value="{{ search_query }}">
+                </div>
+
+                <div class="col-md-2">
+                    <select name="model" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All Models</option>
+                        {% for m in all_models %}
+                        <option value="{{ m.name }}" {% if m.name == selected_model %}selected{% endif %}>
+                            {{ m.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All Status</option>
+                        <option value="completed" {% if selected_status == "completed" %}selected{% endif %}>Completed
+                        </option>
+                        <option value="failed" {% if selected_status == "failed" %}selected{% endif %}>Failed</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="date_range" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All Time</option>
+                        <option value="today" {% if selected_date_range == "today" %}selected{% endif %}>Today</option>
+                        <option value="week" {% if selected_date_range == "week" %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if selected_date_range == "month" %}selected{% endif %}>This Month
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex">
+                    <button type="submit" class="btn btn-sm btn-dark w-100 me-2">Apply Filters</button>
+                    <a href="{% url 'history' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- HISTORY TABLE -->
+    <div class="card border-secondary-subtle">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-dark text-uppercase" style="font-size: 0.75rem;">
+                    <tr>
+                        <th class="ps-3">Attack ID</th>
+                        <th>Category</th>
+                        <th>Model</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th class="pe-3 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for run in test_runs %}
+                    <tr>
+                        <td class="ps-3 font-monospace fw-bold text-secondary">{{ run.attack.attack_id }}</td>
+                        <td class="text-muted">{{ run.attack.category }}</td>
+                        <td>{{ run.model.name }}</td>
+                        <td>{{ run.started_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if run.completed_at %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-3 text-center">
+                            <a href="{% url 'reports' %}" class="btn btn-sm btn-outline-dark py-0 px-2"
+                                style="font-size: 0.8rem;">
+                                View Report
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No test runs found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

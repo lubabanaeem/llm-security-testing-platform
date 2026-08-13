@@ -5,6 +5,7 @@ from .LLM.ollama_client import send_prompt
 from .models import Attack, TestRun, Llm_model, Response, Report
 import time
 import json
+from django.utils import timezone
 
 
 def home(request):
@@ -34,31 +35,30 @@ def home(request):
         selected_model = request.POST.get("model")
 
         attack = Attack.objects.get(attack_id=selected_attack_id)
-
         model = Llm_model.objects.get(name=selected_model)
 
-        print("Prompt from database:")
-        print(attack.prompt)
-        start = time.perf_counter()
-        ollama_model = f"{model.name}:{model.version}"
-        llm_response = send_prompt(ollama_model, attack.prompt)
+        test_run = TestRun.objects.create(user=request.user, model=model, attack=attack)
 
-        end = time.perf_counter()
+        try:
+            start = time.perf_counter()
+            ollama_model = f"{model.name}:{model.version}"
+            llm_response = send_prompt(ollama_model, attack.prompt)
+            end = time.perf_counter()
 
-        print("LLM RESPONSE:")
-        print(llm_response)
+            if not llm_response:  # catches None, empty string, or falsy junk
+                raise ValueError("Model returned an empty response")
 
-        test_run = TestRun.objects.create(
-            user_id=request.user, model_id=model, attack_id=attack
-        )
+            response_time_ms = int((end - start) * 1000)
+            Response.objects.create(
+                test_run=test_run,
+                llm_response=llm_response,
+                response_time_ms=response_time_ms,
+            )
+            test_run.completed_at = timezone.now()
+            test_run.save()
 
-        # Save Response
-        response_time_ms = int((end - start) * 1000)
-        Response.objects.create(
-            test_run=test_run,
-            llm_response=llm_response,
-            response_time_ms=response_time_ms,
-        )
+        except Exception as e:
+            llm_response = f"Test failed: {e}"
 
     return render(
         request,
@@ -92,11 +92,6 @@ def login_view(request):
             )
 
     return render(request, "login.html")
-
-
-from django.shortcuts import render
-from tester.models import Attack
-import json
 
 
 def attack_library(request):
@@ -138,6 +133,59 @@ def attack_library(request):
         "sl_count": sl_count,
     }
     return render(request, "attack_library.html", context)
+
+
+from datetime import timedelta
+
+
+def history(request):
+    # 1. Grab filter choices from the URL
+    search_query = request.GET.get("search", "").strip()
+    selected_model = request.GET.get("model", "").strip()
+    selected_status = request.GET.get("status", "").strip()
+    selected_date_range = request.GET.get("date_range", "").strip()
+
+    # 2. Base queryset - most recent first
+    test_runs = TestRun.objects.all().order_by("-started_at")
+
+    # 3. Apply search (attack id or name)
+    if search_query:
+        test_runs = test_runs.filter(
+            attack__attack_id__icontains=search_query
+        ) | test_runs.filter(attack__name__icontains=search_query)
+
+    # 4. Apply model filter
+    if selected_model:
+        test_runs = test_runs.filter(model__name=selected_model)
+
+    # 5. Apply status filter
+    if selected_status == "completed":
+        test_runs = test_runs.filter(completed_at__isnull=False)
+    elif selected_status == "failed":
+        test_runs = test_runs.filter(completed_at__isnull=True)
+
+    # 6. Apply date range filter
+    if selected_date_range == "today":
+        test_runs = test_runs.filter(started_at__date=timezone.now().date())
+    elif selected_date_range == "week":
+        test_runs = test_runs.filter(started_at__gte=timezone.now() - timedelta(days=7))
+    elif selected_date_range == "month":
+        test_runs = test_runs.filter(
+            started_at__gte=timezone.now() - timedelta(days=30)
+        )
+
+    # 7. Data for filter dropdowns
+    all_models = Llm_model.objects.all()
+
+    context = {
+        "test_runs": test_runs,
+        "all_models": all_models,
+        "search_query": search_query,
+        "selected_model": selected_model,
+        "selected_status": selected_status,
+        "selected_date_range": selected_date_range,
+    }
+    return render(request, "history.html", context)
 
 
 def logout_view(request):

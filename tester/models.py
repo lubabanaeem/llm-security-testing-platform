@@ -24,14 +24,14 @@ class Attack(models.Model):
 
 
 class TestRun(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    model_id = models.ForeignKey(Llm_model, on_delete=models.CASCADE)
-    attack_id = models.ForeignKey(Attack, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    model = models.ForeignKey(Llm_model, on_delete=models.CASCADE)
+    attack = models.ForeignKey(Attack, on_delete=models.CASCADE)
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f" {self.user_id.username} {self.attack_id.name}"
+        return f" {self.user.username} {self.attack.name}"
 
 
 class Response(models.Model):
@@ -40,7 +40,7 @@ class Response(models.Model):
     response_time_ms = models.IntegerField()
 
     def __str__(self):
-        return f" Response for test {self.test_run.attack_id.name}"
+        return f" Response for test {self.test_run.attack.name}"
 
 
 class Evaluation(models.Model):

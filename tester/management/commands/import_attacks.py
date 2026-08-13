@@ -10,6 +10,7 @@ class Command(BaseCommand):
     help = "Import attacks from attacks.json"
 
     def handle(self, *args, **kwargs):
+        Attack.objects.all().delete()
 
         json_path = Path(__file__).resolve().parents[2] / "attack_lib" / "attacks.json"
 

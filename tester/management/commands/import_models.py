@@ -15,8 +15,8 @@ class Command(BaseCommand):
                 "provider": "Ollama",
             },
             {
-                "name": "gemma",
-                "version": "3",
+                "name": "gemma3",
+                "version": "1b",
                 "provider": "Ollama",
             },
         ]
