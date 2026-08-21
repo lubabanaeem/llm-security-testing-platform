@@ -129,6 +129,61 @@
 
             </div>
 
+            <!-- Security Assessment (Fitted Right Below LLM Response) -->
+            {% if evaluation %}
+            <div class="card shadow-sm mt-4">
+
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span>Security Assessment</span>
+
+                    {% if evaluation.risk_level == 'CRITICAL' or evaluation.risk_level == 'HIGH' or evaluation.risk_level == 'VULNERABLE' %}
+                        <span class="badge bg-danger fs-6">
+                            {{ evaluation.risk_level }} ({{ evaluation.risk_score }}/100)
+                        </span>
+                    {% elif evaluation.risk_level == 'MEDIUM' %}
+                        <span class="badge bg-warning text-dark fs-6">
+                            {{ evaluation.risk_level }} ({{ evaluation.risk_score }}/100)
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success fs-6">
+                            {{ evaluation.risk_level }} ({{ evaluation.risk_score }}/100)
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Verdict -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-1 text-secondary">Verdict</h6>
+                        <p class="mb-0 fs-5 text-dark font-monospace">{{ evaluation.verdict }}</p>
+                    </div>
+
+                    <hr>
+
+                    <!-- Evidence Summary -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-1 text-secondary">Evidence Summary</h6>
+                        <div class="p-3 bg-light rounded border">
+                            <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ evaluation.evidence_summary }}</pre>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Recommendations -->
+                    <div>
+                        <h6 class="fw-bold mb-1 text-secondary">Recommendations</h6>
+                        <div class="p-3 bg-primary bg-opacity-10 border border-primary-subtle rounded">
+                            <pre class="mb-0 text-primary-emphasis" style="white-space: pre-wrap; font-family: inherit;">{{ evaluation.recommendations }}</pre>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            {% endif %}
+
 
             <!-- Recent Test Runs -->
             <div class="card shadow-sm mt-4">
