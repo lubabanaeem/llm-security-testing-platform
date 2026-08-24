@@ -12,9 +12,10 @@ def send_prompt(
         "model": model_name,
         "prompt": prompt,
         "stream": False,
+        "options": {"num_predict": 512, "temperature": 0.3},
     }
 
-    response = requests.post(OLLAMA_URL, json=payload)
+    response = requests.post(OLLAMA_URL, json=payload, timeout=60)
 
     if response.status_code == 200:
         return response.json()["response"]

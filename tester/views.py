@@ -7,7 +7,7 @@ import time
 import json
 from django.utils import timezone
 
-from tester.evaluation.services import evaluate_security_response
+# from tester.evaluation.services import evaluate_security_response
 
 
 def home(request):
@@ -27,7 +27,7 @@ def home(request):
     )
 
     llm_response = None
-    evaluation = None
+    #   evaluation = None
 
     if request.method == "POST":
 
@@ -60,7 +60,7 @@ def home(request):
             test_run.completed_at = timezone.now()
             test_run.save()
 
-            evaluation = evaluate_security_response(test_run.id)
+        #       evaluation = evaluate_security_response(test_run.id)
 
         except Exception as e:
             llm_response = f"Test failed: {e}"
@@ -72,7 +72,7 @@ def home(request):
             "categories": categories,
             "attacks_json": attacks_json,
             "llm_response": llm_response if request.method == "POST" else None,
-            "evaluation": evaluation if request.method == "POST" else None,
+            #        "evaluation": evaluation if request.method == "POST" else None,
         },
     )
 
