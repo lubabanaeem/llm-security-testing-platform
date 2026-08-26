@@ -7,9 +7,15 @@ import time
 import json
 from django.utils import timezone
 
-# from tester.evaluation.services import evaluate_security_response
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, render
+from tester.models import Evaluation, TestRun
+
+from tester.evaluation.services import evaluate_security_response
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def home(request):
     attacks = Attack.objects.all()
 
@@ -27,7 +33,7 @@ def home(request):
     )
 
     llm_response = None
-    #   evaluation = None
+    evaluation = None
 
     if request.method == "POST":
 
@@ -60,7 +66,7 @@ def home(request):
             test_run.completed_at = timezone.now()
             test_run.save()
 
-        #       evaluation = evaluate_security_response(test_run.id)
+            evaluation = evaluate_security_response(test_run.id)
 
         except Exception as e:
             llm_response = f"Test failed: {e}"
@@ -72,7 +78,7 @@ def home(request):
             "categories": categories,
             "attacks_json": attacks_json,
             "llm_response": llm_response if request.method == "POST" else None,
-            #        "evaluation": evaluation if request.method == "POST" else None,
+            "evaluation": evaluation if request.method == "POST" else None,
         },
     )
 
@@ -89,7 +95,8 @@ def login_view(request):
         if user is not None:
 
             login(request, user)
-            return redirect("home")
+            next_url = request.POST.get("next") or request.GET.get("next")
+            return redirect(next_url or "home")
 
         else:
 
@@ -100,6 +107,7 @@ def login_view(request):
     return render(request, "login.html")
 
 
+@login_required
 def attack_library(request):
     # 1. Grab filter choices from the URL search bar / dropdown
     search_query = request.GET.get("search", "").strip()
@@ -144,63 +152,64 @@ def attack_library(request):
 from datetime import timedelta
 
 
-def history(request):
-    # 1. Grab filter choices from the URL
-    search_query = request.GET.get("search", "").strip()
-    selected_model = request.GET.get("model", "").strip()
-    selected_status = request.GET.get("status", "").strip()
-    selected_date_range = request.GET.get("date_range", "").strip()
-
-    # 2. Base queryset - most recent first
-    test_runs = TestRun.objects.all().order_by("-started_at")
-
-    # 3. Apply search (attack id or name)
-    if search_query:
-        test_runs = test_runs.filter(
-            attack__attack_id__icontains=search_query
-        ) | test_runs.filter(attack__name__icontains=search_query)
-
-    # 4. Apply model filter
-    if selected_model:
-        test_runs = test_runs.filter(model__name=selected_model)
-
-    # 5. Apply status filter
-    if selected_status == "completed":
-        test_runs = test_runs.filter(completed_at__isnull=False)
-    elif selected_status == "failed":
-        test_runs = test_runs.filter(completed_at__isnull=True)
-
-    # 6. Apply date range filter
-    if selected_date_range == "today":
-        test_runs = test_runs.filter(started_at__date=timezone.now().date())
-    elif selected_date_range == "week":
-        test_runs = test_runs.filter(started_at__gte=timezone.now() - timedelta(days=7))
-    elif selected_date_range == "month":
-        test_runs = test_runs.filter(
-            started_at__gte=timezone.now() - timedelta(days=30)
-        )
-
-    # 7. Data for filter dropdowns
-    all_models = Llm_model.objects.all()
-
-    context = {
-        "test_runs": test_runs,
-        "all_models": all_models,
-        "search_query": search_query,
-        "selected_model": selected_model,
-        "selected_status": selected_status,
-        "selected_date_range": selected_date_range,
-    }
-    return render(request, "history.html", context)
-
-
 def logout_view(request):
     logout(request)
     return redirect("login")
 
 
-def reports(request):
-    return render(request, "report.html")
+@login_required
+def reports_list_view(request):
+    """List view for all past test runs with live search and category filtering."""
+    query = request.GET.get("q", "").strip()
+    category_filter = request.GET.get("category", "").strip()
+
+    evaluations = Evaluation.objects.select_related(
+        "test_run__attack", "test_run__model", "test_run__user"
+    ).order_by("-evaluated_at")
+
+    if query:
+        evaluations = evaluations.filter(
+            Q(test_run__attack__name__icontains=query)
+            | Q(test_run__attack__attack_id__icontains=query)
+            | Q(test_run__model__name__icontains=query)
+            | Q(verdict__icontains=query)
+        )
+
+    if category_filter:
+        evaluations = evaluations.filter(
+            test_run__attack__category__iexact=category_filter
+        )
+
+    # Fetch unique categories for dropdown filter
+    categories = (
+        TestRun.objects.values_list("attack__category", flat=True)
+        .distinct()
+        .order_by("attack__category")
+    )
+
+    context = {
+        "evaluations": evaluations,
+        "query": query,
+        "selected_category": category_filter,
+        "categories": [c.strip() for c in categories if c],
+    }
+    return render(request, "reports_list.html", context)
+
+
+@login_required
+def single_report_detail_view(request, evaluation_id):
+    """Detailed view for a single evaluation report formatted for viewing and PDF printing."""
+    evaluation = get_object_or_404(
+        Evaluation.objects.select_related(
+            "test_run__attack",
+            "test_run__model",
+            "test_run__user",
+            "test_run__response",
+        ),
+        id=evaluation_id,
+    )
+
+    return render(request, "report_detail.html", {"eval": evaluation})
 
 
 # Create your views here.

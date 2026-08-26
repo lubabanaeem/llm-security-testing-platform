@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .sec-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    margin-bottom: 1.2rem;
+  }
+  .sec-page-body { padding: 0 2rem 2rem; }
+  .sec-filter-form {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto auto;
+    gap: 0.7rem;
+    align-items: center;
+    padding: 1rem 1.1rem;
+  }
+  @media (max-width: 900px) {
+    .sec-toolbar { padding: 0 1rem; flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+    .sec-page-body { padding: 0 1rem 1.5rem; }
+    .sec-filter-form { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="sec-header" style="padding-bottom: 1rem;">
+  <div class="sec-eyebrow">// evaluation log</div>
+  <h2 class="sec-title">Security Evaluation Reports</h2>
+  <p class="sec-sub">Browse past diagnostic logs and review individual assessment details.</p>
+</div>
+
+<div class="sec-toolbar">
+  <span></span>
+  <a href="{% url 'home' %}" class="sec-btn sec-btn-outline">&larr; Back to Dashboard</a>
+</div>
+
+<div class="sec-page-body">
+
+  <!-- Filter & Search -->
+  <div class="sec-panel" style="margin-bottom: 1.3rem;">
+    <form method="GET" class="sec-filter-form">
+      <select name="category" class="sec-select">
+        <option value="">All Categories</option>
+        {% for category in categories %}
+          <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>
+            {{ category }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <input type="text" name="q" class="sec-input"
+             placeholder="Search attack, payload ID, model, or verdict..." value="{{ query }}">
+
+      <button type="submit" class="sec-btn sec-btn-primary">Search</button>
+      <a href="{% url 'reports_list' %}" class="sec-btn sec-btn-outline">Reset</a>
+    </form>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="sec-panel">
+    <div class="sec-table-wrap">
+      <table class="sec-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date Evaluated</th>
+            <th>Model</th>
+            <th>Attack Name</th>
+            <th>Category</th>
+            <th>Verdict</th>
+            <th>Risk Level</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in evaluations %}
+          <tr>
+            <td style="font-family: var(--font-mono); font-weight: 700;">#{{ report.id }}</td>
+            <td class="sec-muted" style="font-size: 0.8rem;">
+              {{ report.evaluated_at|date:"Y-m-d H:i" }}
+            </td>
+            <td><span class="sec-badge">{{ report.test_run.model.name }}</span></td>
+            <td style="font-weight: 600;">{{ report.test_run.attack.name }}</td>
+            <td class="sec-muted">{{ report.test_run.attack.category }}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.8rem;">
+              {{ report.verdict|truncatechars:30 }}
+            </td>
+            <td>
+              {% if report.risk_level == 'CRITICAL' or report.risk_level == 'HIGH' or report.risk_level == 'VULNERABLE' %}
+                <span class="sec-risk-badge crit">{{ report.risk_level }}</span>
+              {% elif report.risk_level == 'MEDIUM' %}
+                <span class="sec-risk-badge med">{{ report.risk_level }}</span>
+              {% else %}
+                <span class="sec-risk-badge low">{{ report.risk_level }}</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              <a href="{% url 'report_detail' report.id %}" class="sec-btn sec-btn-primary sec-btn-sm">
+                View Report
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="sec-table-empty">
+              No evaluation reports found matching your criteria.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

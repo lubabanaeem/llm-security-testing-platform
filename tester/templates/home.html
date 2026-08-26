@@ -1,215 +1,263 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+  /* ── Top status strip ─────────────────────────────── */
+  .sec-topbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0.6rem 2rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(16, 21, 28, 0.6);
+  }
+  .sec-status {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .sec-status b { color: var(--signal); font-weight: 600; }
 
-<div class="container mt-4">
+  /* ── Layout ────────────────────────────────────────── */
+  .sec-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    padding: 0 2rem 2rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .sec-grid { grid-template-columns: 1fr; padding: 0 1rem 1.5rem; }
+    .sec-header { padding: 1.5rem 1rem 1rem; }
+    .sec-topbar { padding: 0.9rem 1rem; }
+  }
 
-    <h2 class="mb-4">LLM Security Tester Dashboard</h2>
+  /* ── Step form ─────────────────────────────────────── */
+  .sec-step {
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 1.15rem;
+  }
+  .sec-step-num {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+  }
+  .sec-step.is-active .sec-step-num {
+    color: var(--signal);
+    border-color: var(--signal-dim);
+  }
+  .sec-step-body { flex: 1; }
+  .sec-step-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  .sec-run-btn { width: 100%; margin-top: 0.4rem; }
 
-    <div class="row">
+  /* ── Telemetry console ─────────────────────────────── */
+  .sec-console {
+    background: #05070A;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #B8E6D3;
+    max-height: 280px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .sec-console::before {
+    content: '$ response --stream';
+    display: block;
+    color: var(--text-dim);
+    margin-bottom: 0.6rem;
+  }
+  .sec-empty {
+    text-align: center;
+    padding: 2.2rem 1rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  .sec-badge-live {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--signal);
+    border: 1px solid var(--signal-dim);
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+  }
 
-        <!-- Left Panel -->
-        <div class="col-lg-4">
+  /* ── Risk assessment ───────────────────────────────── */
+  .sec-meter-track {
+    height: 6px;
+    background: var(--bg-panel-raised);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0.6rem 0 1.3rem;
+  }
+  .sec-meter-fill { height: 100%; border-radius: 3px; }
+  .sec-meter-fill.crit { background: var(--risk-crit); }
+  .sec-meter-fill.med  { background: var(--risk-med); }
+  .sec-meter-fill.low  { background: var(--risk-low); }
 
-            <div class="card shadow-sm">
+  .sec-verdict-text {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+</style>
 
-                <div class="card-header bg-dark text-white">
-                    Run Test
-                </div>
+<div>
 
-                <div class="card-body">
+  <!-- Status strip -->
+  <div class="sec-topbar">
+    <div class="sec-status">TARGETS ONLINE: <b>2</b> &nbsp;·&nbsp; ATTACK LIBRARY: <b>26</b> &nbsp;·&nbsp; OWASP LLM TOP 10 COVERAGE: <b>7/10</b></div>
+  </div>
 
-                    <form method="POST">
+  <!-- Header -->
+  <div class="sec-header">
+    <div class="sec-eyebrow"> evaluation console</div>
+    <h2 class="sec-title">Prompt Security Diagnostics</h2>
+    <p class="sec-sub">Run adversarial prompts against target models and review the risk assessment in real time.</p>
+  </div>
 
-                        {% csrf_token %}
+  <div class="sec-grid">
 
-                        <!-- Model -->
-                        <div class="mb-3">
+    <!-- LEFT: Configure Test Run -->
+    <div class="sec-panel">
+      <div class="sec-panel-head">
+        <span>Configure Test Run</span>
+      </div>
+      <div class="sec-panel-body">
+        <form method="POST">
+          {% csrf_token %}
 
-                            <label class="form-label">
-                                Model
-                            </label>
-
-                            <select name="model" class="form-select">
-
-                                <option value="" selected disabled>
-                                    Select Model
-                                </option>
-
-                                <option>gemma3</option>
-                                <option>qwen2.5</option>
-
-
-                            </select>
-
-                        </div>
-
-                        <!-- Attack Category -->
-                        <div class="mb-3">
-
-                            <label class="form-label">
-                                Attack Category
-                            </label>
-
-                            <select id="categorySelect" name="category" class="form-select">
-
-                                <option value="">
-                                    Select Category
-                                </option>
-
-                                {% for category in categories %}
-
-                                <option value="{{ category }}">
-                                    {{ category }}
-                                </option>
-
-                                {% endfor %}
-
-                            </select>
-
-                        </div>
-
-                        <!-- Attack -->
-                        <div class="mb-3">
-
-                            <label class="form-label">
-                                Attack
-                            </label>
-
-                            <select id="attackSelect" name="attack" class="form-select">
-
-                                <option value="">
-                                    Select Attack
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <!-- Run Test Button -->
-                        <button type="submit" class="btn btn-success w-100" id="runTestBtn" disabled>
-                            Run Test
-                        </button>
-
-                    </form>
-
-                </div>
-
+          <div class="sec-step is-active">
+            <div class="sec-step-num">1</div>
+            <div class="sec-step-body">
+              <label class="sec-step-label">Target Model</label>
+              <select name="model" class="sec-select">
+                <option value="" selected disabled>Select target model</option>
+                <option value="gemma3">gemma3</option>
+                <option value="qwen2.5">qwen2.5</option>
+              </select>
             </div>
+          </div>
 
-        </div>
-
-
-        <!-- Right Panel -->
-        <div class="col-lg-8">
-
-            <!-- LLM Response -->
-            <div class="card shadow-sm">
-
-                <div class="card-header bg-primary text-white">
-                    LLM Response
-                </div>
-
-                <div class="card-body">
-
-                    {% if llm_response %}
-
-                    <pre class="mb-0"
-                        style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ llm_response }}</pre>
-
-                    {% else %}
-
-                    <p class="text-muted mb-0">
-                        Waiting for test...
-                    </p>
-
-                    {% endif %}
-
-                </div>
-
+          <div class="sec-step">
+            <div class="sec-step-num">2</div>
+            <div class="sec-step-body">
+              <label class="sec-step-label">Attack Category</label>
+              <select id="categorySelect" name="category" class="sec-select">
+                <option value="">Select category</option>
+                {% for category in categories %}
+                  <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+              </select>
             </div>
+          </div>
 
-            <!-- Security Assessment (Fitted Right Below LLM Response) -->
-            {% if evaluation %}
-            <div class="card shadow-sm mt-4">
-
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <span>Security Assessment</span>
-
-                    {% if evaluation.risk_level == 'CRITICAL' or evaluation.risk_level == 'HIGH' or evaluation.risk_level == 'VULNERABLE' %}
-                        <span class="badge bg-danger fs-6">
-                            {{ evaluation.risk_level }} ({{ evaluation.risk_score }}/100)
-                        </span>
-                    {% elif evaluation.risk_level == 'MEDIUM' %}
-                        <span class="badge bg-warning text-dark fs-6">
-                            {{ evaluation.risk_level }} ({{ evaluation.risk_score }}/100)
-                        </span>
-                    {% else %}
-                        <span class="badge bg-success fs-6">
-                            {{ evaluation.risk_level }} ({{ evaluation.risk_score }}/100)
-                        </span>
-                    {% endif %}
-                </div>
-
-                <div class="card-body">
-
-                    <!-- Verdict -->
-                    <div class="mb-3">
-                        <h6 class="fw-bold mb-1 text-secondary">Verdict</h6>
-                        <p class="mb-0 fs-5 text-dark font-monospace">{{ evaluation.verdict }}</p>
-                    </div>
-
-                    <hr>
-
-                    <!-- Evidence Summary -->
-                    <div class="mb-3">
-                        <h6 class="fw-bold mb-1 text-secondary">Evidence Summary</h6>
-                        <div class="p-3 bg-light rounded border">
-                            <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ evaluation.evidence_summary }}</pre>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <!-- Recommendations -->
-                    <div>
-                        <h6 class="fw-bold mb-1 text-secondary">Recommendations</h6>
-                        <div class="p-3 bg-primary bg-opacity-10 border border-primary-subtle rounded">
-                            <pre class="mb-0 text-primary-emphasis" style="white-space: pre-wrap; font-family: inherit;">{{ evaluation.recommendations }}</pre>
-                        </div>
-                    </div>
-
-                </div>
-
+          <div class="sec-step">
+            <div class="sec-step-num">3</div>
+            <div class="sec-step-body">
+              <label class="sec-step-label">Attack Payload</label>
+              <select id="attackSelect" name="attack" class="sec-select">
+                <option value="">Select attack</option>
+              </select>
             </div>
-            {% endif %}
+          </div>
 
-
-            <!-- Recent Test Runs -->
-            <div class="card shadow-sm mt-4">
-
-                <div class="card-header bg-secondary text-white">
-                    Recent Test Runs
-                </div>
-
-                <div class="card-body">
-
-                    No tests executed yet.
-
-                </div>
-
-            </div>
-
-        </div>
-
+          <button type="submit" class="sec-btn sec-btn-primary sec-run-btn" id="runTestBtn" disabled>
+            Execute Security Test
+          </button>
+        </form>
+      </div>
     </div>
 
+    <!-- RIGHT: Telemetry + Assessment -->
+    <div>
+      <div class="sec-panel" style="margin-bottom: 1.5rem;">
+        <div class="sec-panel-head">
+          <span>LLM Output Telemetry</span>
+          {% if llm_response %}<span class="sec-badge-live">Execution complete</span>{% endif %}
+        </div>
+        <div class="sec-panel-body">
+          {% if llm_response %}
+            <div class="sec-console">{{ llm_response }}</div>
+          {% else %}
+            <div class="sec-empty">Select a model and attack scenario on the left to run a test.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if evaluation %}
+      <div class="sec-panel">
+        <div class="sec-panel-head">
+          <span>Security Assessment</span>
+          {% if evaluation.risk_level == 'CRITICAL' or evaluation.risk_level == 'HIGH' or evaluation.risk_level == 'VULNERABLE' %}
+            <span class="sec-risk-badge crit">{{ evaluation.risk_level }} · {{ evaluation.risk_score }}/100</span>
+          {% elif evaluation.risk_level == 'MEDIUM' %}
+            <span class="sec-risk-badge med">{{ evaluation.risk_level }} · {{ evaluation.risk_score }}/100</span>
+          {% else %}
+            <span class="sec-risk-badge low">{{ evaluation.risk_level }} · {{ evaluation.risk_score }}/100</span>
+          {% endif %}
+        </div>
+        <div class="sec-panel-body">
+
+          <div class="sec-meter-track">
+            {% if evaluation.risk_level == 'CRITICAL' or evaluation.risk_level == 'HIGH' or evaluation.risk_level == 'VULNERABLE' %}
+              <div class="sec-meter-fill crit" style="width: {{ evaluation.risk_score }}%;"></div>
+            {% elif evaluation.risk_level == 'MEDIUM' %}
+              <div class="sec-meter-fill med" style="width: {{ evaluation.risk_score }}%;"></div>
+            {% else %}
+              <div class="sec-meter-fill low" style="width: {{ evaluation.risk_score }}%;"></div>
+            {% endif %}
+          </div>
+
+          <div class="sec-field-label">Verdict</div>
+          <p class="sec-verdict-text" style="margin-bottom: 1.1rem;">{{ evaluation.verdict }}</p>
+
+          <hr class="sec-divider">
+
+          <div class="sec-field-label">Evidence Summary</div>
+          <div class="sec-field-block" style="margin-bottom: 1.1rem;">
+            <pre class="sec-mono-block">{{ evaluation.evidence_summary }}</pre>
+          </div>
+
+          <hr class="sec-divider">
+
+          <div class="sec-field-label">Recommendations</div>
+          <div class="sec-field-block" style="border-color: var(--signal-dim);">
+            <pre class="sec-mono-block">{{ evaluation.recommendations }}</pre>
+          </div>
+
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
 </div>
 
-<!-- Attack Filtering JavaScript -->
-
+<!-- Attack Filtering JavaScript (unchanged logic) -->
 <script>
-
     const attacks = JSON.parse('{{ attacks_json|escapejs }}');
 
     const modelSelect = document.querySelector('select[name="model"]');
@@ -226,36 +274,24 @@
     }
 
     categorySelect.addEventListener("change", function () {
-
-        attackSelect.innerHTML =
-            '<option value="">Select Attack</option>';
+        attackSelect.innerHTML = '<option value="">Select Attack</option>';
 
         const selectedCategory = this.value;
-
         const filtered = attacks.filter(
             attack => attack.category === selectedCategory
         );
 
         filtered.forEach(function (attack) {
-
-            const option =
-                document.createElement("option");
-
+            const option = document.createElement("option");
             option.value = attack.id;
-
             option.textContent = attack.name;
-
             attackSelect.appendChild(option);
-
         });
 
         checkFormComplete();
-
     });
 
     modelSelect.addEventListener("change", checkFormComplete);
     attackSelect.addEventListener("change", checkFormComplete);
-
 </script>
-
 {% endblock %}

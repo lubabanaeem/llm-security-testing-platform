@@ -1,25 +1,61 @@
-<form method="POST">
+{% extends "base.html" %}
 
-    {% csrf_token %}
+{% block content %}
+<!-- Temporary CSS overrides to hide nav links on login and center the layout -->
+<style>
+    /* Hides the main navigation links for unauthenticated visitors */
+    .app-nav-links {
+        display: none !important;
+    }
+    /* Centers the login container cleanly within the body viewport */
+    .login-container-wrapper {
+        min-height: calc(100vh - 70px); /* Subtracts approximate navbar height */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+</style>
 
-    <div class="mb-3">
-        <label>Username</label>
-        <input type="text" class="form-control" name="username" required>
+<div class="login-container-wrapper">
+    <!-- Login Context Panel Container -->
+    <div class="sec-panel" style="max-width: 420px; width: 100%;">
+        <div class="sec-panel-head">
+            Authentication Required
+        </div>
+        <div class="sec-panel-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Keeps URL context parameter safely available through POST context -->
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+                <!-- Username Context Field -->
+                <div class="mb-3">
+                    <label class="sec-field-label">Username</label>
+                    <input type="text" class="sec-input" name="username" placeholder="Enter security credentials" required autocomplete="username">
+                </div>
+
+                <!-- Password Context Field -->
+                <div class="mb-4">
+                    <label class="sec-field-label">Password</label>
+                    <input type="password" class="sec-input" name="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+
+                <!-- Handled Alert Container Element -->
+                {% if error %}
+                <div class="sec-alert-error" style="background: rgba(255, 92, 92, 0.1); border: 1px solid var(--risk-crit); border-radius: 4px; color: var(--risk-crit); font-family: var(--font-mono); font-size: 0.78rem; padding: 0.75rem; margin-bottom: 1rem;" role="alert">
+                    ERROR: {{ error }}
+                </div>
+                {% endif %}
+
+                <!-- Action Button Element -->
+                <button type="submit" class="sec-btn sec-btn-primary w-100 py-2">
+                    Establish Session
+                </button>
+            </form>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label>Password</label>
-        <input type="password" class="form-control" name="password" required>
-    </div>
-
-    {% if error %}
-    <div class="alert alert-danger">
-        {{ error }}
-    </div>
-    {% endif %}
-
-    <button type="submit" class="btn btn-primary w-100">
-        Login
-    </button>
-
-</form>
+</div>
+{% endblock %}

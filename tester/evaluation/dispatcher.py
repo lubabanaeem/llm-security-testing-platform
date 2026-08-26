@@ -1,32 +1,38 @@
 # dispatcher.py
 
 from .evaluator import (
-    evaluate_prompt_injection,
-    evaluate_insecure_output_handling,
     evaluate_excessive_agency,
-    evaluate_system_prompt_leakage,
-    evaluate_sensitive_info_disclosure,
+    evaluate_insecure_output_handling,
     evaluate_misinformation,
+    evaluate_prompt_injection,
+    evaluate_sensitive_info_disclosure,
+    evaluate_system_prompt_leakage,
     evaluate_unbounded_consumption,
 )
 
+# Standard lookup dictionary using lowercased, stripped strings
 CATEGORY_DISPATCH = {
-    "Prompt Injection": evaluate_prompt_injection,
-    "Insecure Output Handling": evaluate_insecure_output_handling,
-    "Excessive Agency": evaluate_excessive_agency,
-    "System Prompt Leakage": evaluate_system_prompt_leakage,
-    "Sensitive Information Disclosure": evaluate_sensitive_info_disclosure,
-    "Misinformation": evaluate_misinformation,
-    "Unbounded Consumption": evaluate_unbounded_consumption,
+    "prompt injection": evaluate_prompt_injection,
+    "insecure output handling": evaluate_insecure_output_handling,
+    "excessive agency": evaluate_excessive_agency,
+    "system prompt leakage": evaluate_system_prompt_leakage,
+    "sensitive information disclosure": evaluate_sensitive_info_disclosure,
+    # Common variations/aliases:
+    "sensitive disclosure": evaluate_sensitive_info_disclosure,
+    "sensitive info disclosure": evaluate_sensitive_info_disclosure,
+    "misinformation": evaluate_misinformation,
+    "unbounded consumption": evaluate_unbounded_consumption,
 }
 
 
 def dispatch_evaluation(category, prompt_text, response_text):
-    """
-    Routes an evaluation request to the correct category evaluator.
-    """
+    """Routes an evaluation request to the correct category evaluator."""
+    if not category:
+        normalized_category = ""
+    else:
+        normalized_category = str(category).strip().lower()
 
-    evaluator = CATEGORY_DISPATCH.get(category)
+    evaluator = CATEGORY_DISPATCH.get(normalized_category)
 
     if evaluator is None:
         return {

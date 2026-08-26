@@ -8,32 +8,328 @@
     <title>LLM Security Tester</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-void: #0A0D12;
+            --bg-panel: #10151C;
+            --bg-panel-raised: #161C25;
+            --line: #232B36;
+            --line-soft: #1A2029;
+            --text-primary: #E7ECF2;
+            --text-muted: #7C8798;
+            --text-dim: #4E5967;
+            --signal: #35D2A4;
+            --signal-dim: #1D6B54;
+            --risk-crit: #FF5C5C;
+            --risk-med: #F5B942;
+            --risk-low: #35D2A4;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --font-body: 'Inter', -apple-system, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        body {
+            background: var(--bg-void);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            background-image:
+                linear-gradient(var(--line-soft) 1px, transparent 1px),
+                linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+            background-size: 34px 34px;
+            background-position: -1px -1px;
+        }
+
+        /* ── Nav ───────────────────────────────────────── */
+        .app-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 2rem;
+            border-bottom: 1px solid var(--line);
+            background: rgba(16, 21, 28, 0.92);
+            backdrop-filter: blur(6px);
+        }
+        .app-brand {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .app-brand .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--signal);
+            box-shadow: 0 0 8px var(--signal);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+        .app-nav-links {
+            display: flex;
+            gap: 1.6rem;
+        }
+        .app-nav-links a {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding-bottom: 0.2rem;
+            border-bottom: 1px solid transparent;
+            transition: color 0.15s ease, border-color 0.15s ease;
+        }
+        .app-nav-links a:hover {
+            color: var(--signal);
+            border-color: var(--signal-dim);
+        }
+
+        @media (max-width: 700px) {
+            .app-nav { flex-direction: column; align-items: flex-start; gap: 0.7rem; padding: 0.85rem 1rem; }
+            .app-nav-links { gap: 1.1rem; flex-wrap: wrap; }
+        }
+
+        .app-content {
+            width: 100%;
+        }
+
+        /* ══ Shared page-header block ═══════════════════ */
+        .sec-header { padding: 2rem 2rem 1.5rem; }
+        .sec-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--signal);
+            margin-bottom: 0.5rem;
+        }
+        .sec-title {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 1.7rem;
+            color: var(--text-primary);
+            margin: 0 0 0.35rem;
+        }
+        .sec-sub { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
+        @media (max-width: 700px) {
+            .sec-header { padding: 1.5rem 1rem 1rem; }
+        }
+
+        /* ══ Shared panels ══════════════════════════════ */
+        .sec-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .sec-panel-head {
+            padding: 0.85rem 1.1rem;
+            border-bottom: 1px solid var(--line);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sec-panel-body { padding: 1.1rem; }
+
+        .sec-field-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+        .sec-field-block {
+            background: var(--bg-panel-raised);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 0.85rem 0.95rem;
+        }
+        .sec-mono-block {
+            white-space: pre-wrap;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.55;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .sec-divider { border: none; border-top: 1px solid var(--line); margin: 1.1rem 0; }
+
+        /* ══ Shared form controls ═══════════════════════ */
+        .sec-select, .sec-input {
+            width: 100%;
+            background: var(--bg-panel-raised);
+            border: 1px solid var(--line);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.55rem 0.7rem;
+            border-radius: 4px;
+        }
+        .sec-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237C8798'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+        }
+        .sec-input::placeholder { color: var(--text-dim); }
+        .sec-select:focus, .sec-input:focus {
+            outline: none;
+            border-color: var(--signal);
+            box-shadow: 0 0 0 2px rgba(53, 210, 164, 0.15);
+        }
+        .sec-select:disabled, .sec-input:disabled { opacity: 0.5; }
+
+        /* ══ Shared buttons ══════════════════════════════ */
+        .sec-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            transition: filter 0.15s ease, background 0.15s ease, color 0.15s ease;
+        }
+        .sec-btn-primary {
+            background: var(--signal);
+            color: #05130E;
+        }
+        .sec-btn-primary:hover { filter: brightness(1.1); color: #05130E; }
+        .sec-btn-primary:disabled {
+            background: var(--bg-panel-raised);
+            color: var(--text-dim);
+            border-color: var(--line);
+            cursor: not-allowed;
+            filter: none;
+        }
+        .sec-btn-outline {
+            background: transparent;
+            color: var(--text-muted);
+            border-color: var(--line);
+        }
+        .sec-btn-outline:hover {
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+        .sec-btn-sm { padding: 0.4rem 0.75rem; font-size: 0.7rem; }
+
+        /* ══ Shared badges ═══════════════════════════════ */
+        .sec-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.02em;
+            padding: 0.2rem 0.55rem;
+            border-radius: 3px;
+            background: var(--bg-panel-raised);
+            color: var(--text-muted);
+            border: 1px solid var(--line);
+            display: inline-block;
+        }
+        .sec-risk-badge {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 0.25rem 0.6rem;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .sec-risk-badge.crit { background: rgba(255,92,92,0.12); color: var(--risk-crit); border: 1px solid rgba(255,92,92,0.35); }
+        .sec-risk-badge.med  { background: rgba(245,185,66,0.12); color: var(--risk-med); border: 1px solid rgba(245,185,66,0.35); }
+        .sec-risk-badge.low  { background: rgba(53,210,164,0.12); color: var(--risk-low); border: 1px solid rgba(53,210,164,0.35); }
+
+        /* ══ Shared table ═══════════════════════════════ */
+        .sec-table-wrap { overflow-x: auto; }
+        .sec-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .sec-table thead th {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--line);
+            background: var(--bg-panel-raised);
+            white-space: nowrap;
+        }
+        .sec-table tbody td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--line-soft);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+        .sec-table tbody tr:hover { background: var(--bg-panel-raised); }
+        .sec-table tbody tr:last-child td { border-bottom: none; }
+        .sec-table .sec-muted { color: var(--text-muted); }
+        .sec-table .sec-dim { color: var(--text-dim); }
+        .sec-table-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-dim); }
+
+        /* ══ Bootstrap modal, restyled dark ═════════════ */
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            color: var(--text-primary);
+        }
+        .modal-header { border-bottom: 1px solid var(--line); }
+        .modal-footer { border-top: 1px solid var(--line); }
+        .modal-header.sec-modal-head {
+            background: var(--bg-panel-raised);
+            font-family: var(--font-mono);
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-
-            <a class="navbar-brand" href="/">LLM Security Tester</a>
-
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">Home</a>
-                <a class="nav-link" href="/reports/">Reports</a>
-                <a class="nav-link" href="/logout/">Logout</a>
-                <a class="nav-link" href="/attack_library">Attack Library</a>
-            </div>
-
+    <nav class="app-nav">
+        <a class="app-brand" href="/"><span class="dot"></span> LLM SECURITY TESTER</a>
+        <div class="app-nav-links">
+            <a href="/">Home</a>
+            <a href="/reports/">Reports</a>
+            <a href="/attack_library">Attack Library</a>
+            <a href="/logout/">Logout</a>
         </div>
     </nav>
 
-    <div class="container mt-4">
-
+    <main class="app-content">
         {% block content %}
-
         {% endblock %}
-
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 

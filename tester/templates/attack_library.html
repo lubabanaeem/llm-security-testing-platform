@@ -1,183 +1,183 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container my-4">
+<style>
+  .sec-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    margin-bottom: 1.2rem;
+  }
+  .sec-page-body { padding: 0 2rem 2rem; }
+  .sec-filter-form {
+    display: grid;
+    grid-template-columns: 1.6fr 1.4fr auto auto;
+    gap: 0.7rem;
+    align-items: center;
+    padding: 1rem 1.1rem;
+  }
+  .sec-truncate {
+    max-width: 380px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 900px) {
+    .sec-toolbar { padding: 0 1rem; flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+    .sec-page-body { padding: 0 1rem 1.5rem; }
+    .sec-filter-form { grid-template-columns: 1fr; }
+    .sec-truncate { max-width: 220px; }
+  }
+</style>
 
-    <!-- HEADER BLOCK -->
-    <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="fw-bold text-dark m-0">Vulnerability Payload Database</h4>
-            <small class="text-muted">Reference library for LLM vulnerability and prompt injection testing
-                evaluation</small>
-        </div>
-        <span class="badge bg-dark font-monospace">v1.0.0-Stable</span>
+<div class="sec-header" style="padding-bottom: 1rem;">
+  <div class="sec-eyebrow">// reference library</div>
+  <h2 class="sec-title">Vulnerability Payload Database</h2>
+  <p class="sec-sub">Reference library for LLM vulnerability and prompt injection testing evaluation.</p>
+</div>
+
+<div class="sec-toolbar">
+  <span></span>
+  <span class="sec-badge">v1.0.0-STABLE</span>
+</div>
+
+<div class="sec-page-body">
+
+  <!-- Search & Filter -->
+  <div class="sec-panel" style="margin-bottom: 1.3rem;">
+    <form method="GET" action="" class="sec-filter-form">
+      <input type="text" name="search" class="sec-input"
+             placeholder="Filter by Vector ID or keyword..." value="{{ search_query }}">
+
+      <select name="category" class="sec-select" onchange="this.form.submit()">
+        <option value="">All Vulnerability Classifications</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="sec-btn sec-btn-primary sec-btn-sm">Apply Filters</button>
+      <a href="{% url 'attack_library' %}" class="sec-btn sec-btn-outline sec-btn-sm">Reset</a>
+    </form>
+  </div>
+
+  <!-- Data Grid -->
+  <div class="sec-panel">
+    <div class="sec-table-wrap">
+      <table class="sec-table">
+        <thead>
+          <tr>
+            <th style="width: 12%;">Vector ID</th>
+            <th style="width: 23%;">Vulnerability Name</th>
+            <th style="width: 25%;">Classification Category</th>
+            <th style="width: 30%;">Expected Secure Behavior</th>
+            <th style="width: 10%; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attack in attacks %}
+          <tr>
+            <td style="font-family: var(--font-mono); font-weight: 700; color: var(--text-muted);">
+              {{ attack.attack_id }}
+            </td>
+            <td style="font-weight: 600;">{{ attack.name }}</td>
+            <td class="sec-muted">{{ attack.category }}</td>
+            <td>
+              <div class="sec-truncate sec-muted" title="{{ attack.expected_behaviour }}">
+                {{ attack.expected_behaviour }}
+              </div>
+            </td>
+            <td style="text-align: center;">
+              <button type="button" class="sec-btn sec-btn-outline sec-btn-sm" data-bs-toggle="modal"
+                      data-bs-target="#payloadModal"
+                      data-id="{{ attack.attack_id }}" data-name="{{ attack.name }}"
+                      data-category="{{ attack.category }}" data-prompt="{{ attack.prompt }}"
+                      data-behaviour="{{ attack.expected_behaviour }}">
+                Inspect
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="sec-table-empty">No matching records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-
-    <!-- SEARCH & FILTER UTILITY BAR -->
-    <div class="card border-secondary-subtle bg-light mb-4">
-        <div class="card-body py-3">
-            <form method="GET" action="" class="row g-2 align-items-center">
-
-                <!-- Keyword text field input -->
-                <div class="col-md-5">
-                    <input type="text" name="search" class="form-control form-control-sm"
-                        placeholder="Filter by Vector ID or keyword..." value="{{ search_query }}">
-                </div>
-
-                <!-- Dropdown input filter -->
-                <div class="col-md-4">
-                    <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">All Vulnerability Classifications</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat }}" {% if cat in selected_category %}selected{% endif %}>{{ cat }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Query execute control buttons -->
-                <div class="col-md-3 d-flex">
-                    <button type="submit" class="btn btn-sm btn-dark w-100 me-2">Apply Filters</button>
-                    <a href="{% url 'attack_library' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    <!-- VULNERABILITY PAYLOAD DATA GRID -->
-    <div class="card border-secondary-subtle">
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.9rem;">
-                <thead class="table-dark text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                    <tr>
-                        <th class="ps-3" style="width: 12%;">Vector ID</th>
-                        <th style="width: 23%;">Vulnerability Name</th>
-                        <th style="width: 25%;">Classification Category</th>
-                        <th style="width: 30%;">Expected Secure Behavior</th>
-                        <th class="pe-3" style="width: 10%; text-align: center;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="border-top-0">
-                    {% for attack in attacks %}
-                    <tr>
-                        <!-- 1. WHERE THE ID LIVE: Stamped cleanly in this cell -->
-                        <td class="ps-3"><span class="font-monospace fw-bold text-secondary">
-                                {{ attack.attack_id }}</span></td>
-                        <td class="fw-semibold text-dark">{{ attack.name }}</td>
-                        <td><span class="text-muted">{{ attack.category }}</span></td>
-
-                        <!-- FIXED: Using "expected_behavior" to match your JSON data structure -->
-                        <td>
-                            <div class="text-truncate text-muted" style="max-width: 380px;"
-                                title="{{ attack.expected_behavior }}">
-                                {{ attack.expected_behaviour }}
-                            </div>
-                        </td>
-
-                        <td class="pe-3 text-center">
-                            <!-- 2. THE SECRET DATA DROP: This button secretly carries your database data inside text tags -->
-                            <button type="button" class="btn btn-sm btn-outline-dark py-0 px-2"
-                                style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#payloadModal"
-                                data-id="{{ attack.attack_id }}" data-name="{{ attack.name }}"
-                                data-category="{{ attack.category }}" data-prompt="{{ attack.prompt }}"
-                                data-behaviour="{{ attack.expected_behaviour }}">
-                                Inspect
-                            </button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No matching records found within active
-                            directory partition.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+  </div>
 
 </div>
 
-<!-- DETAILED INSPECTION MODAL SYSTEM WINDOW -->
+<!-- Inspection Modal -->
 <div class="modal fade" id="payloadModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-dark">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
 
-            <div class="modal-header bg-dark text-white py-2 px-3">
-                <!-- 3. WHERE THE ID GETS COURIERED: This blank span gets populated by JS -->
-                <span class="font-monospace small opacity-75" id="modalAttackIdHeader"></span>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
+      <div class="modal-header sec-modal-head py-2 px-3">
+        <span class="small opacity-75" id="modalAttackIdHeader" style="color: var(--signal);"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
-            <div class="modal-body p-4" style="font-size: 0.9rem;">
+      <div class="modal-body p-4" style="font-size: 0.9rem;">
 
-
-                <div class="row border-bottom pb-3 mb-3 bg-light p-2 rounded mx-0">
-                    <div class="col-6">
-                        <small class="text-uppercase text-muted d-block font-monospace"
-                            style="font-size: 0.7rem;">Vector Key</small>
-                        <span id="modalAttackId" class="font-monospace fw-bold text-dark"></span>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-uppercase text-muted d-block font-monospace"
-                            style="font-size: 0.7rem;">Classification Domain</small>
-                        <span id="modalCategory" class="fw-semibold text-dark"></span>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <small class="text-uppercase text-muted d-block font-monospace" style="font-size: 0.7rem;">Payload
-                        Profile Designation</small>
-                    <h5 id="modalName" class="fw-bold text-dark m-0"></h5>
-                </div>
-
-                <!-- CONSOLE STYLE CODE VIEW FOR PROMPT -->
-                <div class="mb-3">
-                    <label class="form-label font-monospace fw-bold mb-1"
-                        style="font-size: 0.75rem; color: #a51d2d;">[!] Raw Injection Payload String</label>
-                    <div class="border bg-dark text-light p-3 rounded font-monospace" id="modalPrompt"
-                        style="white-space: pre-wrap; max-height: 200px; overflow-y: auto; font-size: 0.85rem; border-color: #333!important;">
-                    </div>
-                </div>
-
-                <!-- CLEAN PROFESSIONAL RESPONSE BOX -->
-                <div class="mb-0">
-                    <label class="form-label font-monospace fw-bold mb-1"
-                        style="font-size: 0.75rem; color: #1a7f37;">[✓] Expected Compliant Boundary Strategy</label>
-                    <div class="border border-success-subtle bg-success-subtle text-success-emphasis p-3 rounded"
-                        id="modalBehaviour" style="font-size: 0.85rem;"></div>
-                </div>
-            </div>
-
-            <div class="modal-footer bg-light py-2">
-                <button type="button" class="btn btn-sm btn-secondary font-monospace" data-bs-dismiss="modal">Close
-                    Console</button>
-            </div>
-
+        <div class="sec-field-block" style="display: flex; gap: 1.5rem; margin-bottom: 1.1rem;">
+          <div style="flex: 1;">
+            <div class="sec-field-label">Vector Key</div>
+            <span id="modalAttackId" style="font-family: var(--font-mono); font-weight: 700;"></span>
+          </div>
+          <div style="flex: 1;">
+            <div class="sec-field-label">Classification Domain</div>
+            <span id="modalCategory" style="font-weight: 600;"></span>
+          </div>
         </div>
+
+        <div class="mb-3">
+          <div class="sec-field-label">Payload Profile Designation</div>
+          <h5 id="modalName" class="fw-bold m-0" style="color: var(--text-primary);"></h5>
+        </div>
+
+        <div class="mb-3">
+          <label class="sec-field-label" style="color: var(--risk-crit); display: block;">
+            [!] Raw Injection Payload String
+          </label>
+          <div class="sec-mono-block sec-field-block" id="modalPrompt"
+               style="max-height: 200px; overflow-y: auto; background: #05070A;"></div>
+        </div>
+
+        <div class="mb-0">
+          <label class="sec-field-label" style="color: var(--signal); display: block;">
+            [&check;] Expected Compliant Boundary Strategy
+          </label>
+          <div class="sec-field-block" id="modalBehaviour"
+               style="border-color: var(--signal-dim); font-size: 0.85rem;"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer py-2">
+        <button type="button" class="sec-btn sec-btn-outline sec-btn-sm" data-bs-dismiss="modal">Close Console</button>
+      </div>
+
     </div>
+  </div>
 </div>
 
-<!-- DATA TRANSIT ROUTER -->
+<!-- Data transit router (unchanged logic) -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const payloadModal = document.getElementById('payloadModal');
 
         if (payloadModal) {
             payloadModal.addEventListener('show.bs.modal', function (event) {
-                // Find out exactly which Inspect button was clicked in the table rows
                 const triggerButton = event.relatedTarget;
 
-                // Extract the data tags attached to that specific row's button
                 const id = triggerButton.getAttribute('data-id');
                 const name = triggerButton.getAttribute('data-name');
                 const cat = triggerButton.getAttribute('data-category');
                 const prompt = triggerButton.getAttribute('data-prompt');
                 const behaviour = triggerButton.getAttribute('data-behaviour');
 
-                // Find the blank placeholders waiting inside the popup window HTML layout
                 const headerEl = payloadModal.querySelector('#modalAttackIdHeader');
                 const idEl = payloadModal.querySelector('#modalAttackId');
                 const catEl = payloadModal.querySelector('#modalCategory');
@@ -185,7 +185,6 @@
                 const promptEl = payloadModal.querySelector('#modalPrompt');
                 const behaviourEl = payloadModal.querySelector('#modalBehaviour');
 
-                // Copy and paste the extracted data directly into the modal placeholders
                 headerEl.textContent = `SYSTEM_LOG // PAYLOAD_SPECS // ${id}`;
                 idEl.textContent = id;
                 catEl.textContent = cat;
