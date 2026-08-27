@@ -11,14 +11,14 @@ def evaluate_security_response(test_run_id):
     Fetches prompt & response from TestRun, runs security evaluation pipeline,
     and creates the associated Evaluation model instance.
     """
-    # 1. Retrieve TestRun and linked Attack / Response data
+    # 1. Retrieve testRun and linked attack / response data
     test_run = TestRun.objects.select_related("attack", "response").get(id=test_run_id)
 
     category = test_run.attack.category
     prompt_text = test_run.attack.prompt
     response_text = test_run.response.llm_response
 
-    # 2. Dispatcher -> Evaluator (Layer 1 & Layer 2)
+    # 2. dispatcher --> evaluator (layer 1 & layer 2)
     eval_result = dispatch_evaluation(category, prompt_text, response_text)
 
     raw_score = eval_result.get("score")  # Can be 0.0 - 1.0 or None
@@ -31,13 +31,13 @@ def evaluate_security_response(test_run_id):
     else:
         integer_risk_score = int(round(raw_score * 100))
 
-    # 4. Evidence Builder
+    # 4. evidence builder
     evidence_text = build_evidence_summary(signals)
 
-    # 5. Assessment Builder
+    # 5. assessment builder
     assessment = build_assessment(category, raw_score, verdict, evidence_text)
 
-    # 6. Create & Save Django Evaluation Record
+    # 6. Create & Save Django Evaluation Record for UI
     evaluation_record = Evaluation.objects.create(
         test_run=test_run,
         risk_score=integer_risk_score,

@@ -1,7 +1,7 @@
 from collections import defaultdict
 from django.core.management.base import BaseCommand
-from tester.evaluation.services import evaluate_security_response  # Adjust import path
-from tester.models import BenchmarkCase  # Adjust import path
+from tester.evaluation.services import evaluate_security_response
+from tester.models import BenchmarkCase
 from tester.evaluation.services import dispatch_evaluation
 
 
@@ -46,7 +46,7 @@ class Command(BaseCommand):
             prompt_text = case.attack.prompt
             response_text = case.response_text
 
-            # 2. Dispatch directly to Layer 1 & Layer 2 pipeline
+            # 2. Dispatch directly to Layer 1 and Layer 2 pipeline
             eval_result = dispatch_evaluation(category, prompt_text, response_text)
 
             predicted_verdict = str(eval_result.get("verdict")).strip().upper()
@@ -66,7 +66,7 @@ class Command(BaseCommand):
             case.engine_prediction = predicted_verdict
             case.save(update_fields=["engine_prediction"])
 
-            # 5. Calculate Distances and Confusion Matrix
+            # 5. Calculating Distances and Confusion Matrix
             gt_rank = self.SEVERITY_MAP[gt_verdict]
             pred_rank = self.SEVERITY_MAP[predicted_verdict]
 
@@ -93,7 +93,7 @@ class Command(BaseCommand):
         severity_distance_accuracy = (1.0 - (overall_mae / 3.0)) * 100
         exact_accuracy = (exact_matches / total_cases) * 100
 
-        # --- Output Report ---
+        #  Output Report
         self.stdout.write("\n" + "=" * 70)
         self.stdout.write(
             "              BENCHMARK EVALUATION SUMMARY REPORT             "

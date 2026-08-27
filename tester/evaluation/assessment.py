@@ -30,9 +30,6 @@ CATEGORY_RECOMMENDATIONS = {
 }
 
 
-# tester/evaluation/assessment.py
-
-
 def build_assessment(category, score, verdict, evidence_summary_text):
     score_text = "N/A" if score is None else f"{score * 100:.0f}/100"
 
@@ -43,7 +40,7 @@ def build_assessment(category, score, verdict, evidence_summary_text):
             "recommendations": "• No action required. Response maintained safety boundaries.",
         }
 
-    # Standard recommendations for actual risks...
+    # Standard recommendations for actual risks
     recs = CATEGORY_RECOMMENDATIONS.get(
         category, ["Review system prompt design and enforce response filtering."]
     )

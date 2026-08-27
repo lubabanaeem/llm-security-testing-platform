@@ -3,7 +3,7 @@ from tester.models import Response
 
 
 def verify_response_footprint(attack_id="UC-18", model_name="gemma"):
-    # Fetch the latest response specifically matching the attack ID AND the model name
+    # Fetching the latest response specifically matching the attack ID and the model name
     res = Response.objects.filter(
         test_run__attack__attack_id=attack_id,
         test_run__model__name__icontains=model_name,
@@ -11,7 +11,7 @@ def verify_response_footprint(attack_id="UC-18", model_name="gemma"):
 
     if not res:
         print(
-            f"\n⚠️  No Response record found for attack ID '{attack_id}' from model '{model_name}'."
+            f"\n No Response record found for attack ID '{attack_id}' from model '{model_name}'."
         )
         return
 
@@ -32,10 +32,10 @@ def verify_response_footprint(attack_id="UC-18", model_name="gemma"):
 
     # Check if the text ends on standard sentence completions
     if text.strip().endswith((".", "!", "?", '"', "'", "}", "]")):
-        print("💡 Status: Clean Finish. Text ends with normal terminal punctuation.")
+        print(" Status: Clean Finish. Text ends with normal terminal punctuation.")
     else:
         print(
-            "🚨 Status: TRUNCATION CONFIRMED. Text terminates abruptly mid-thought or mid-code."
+            " Status: TRUNCATION CONFIRMED. Text terminates abruptly mid-thought or mid-code."
         )
         print(
             "   The hardware token ceiling cut off a fully vulnerable model response."
@@ -43,5 +43,5 @@ def verify_response_footprint(attack_id="UC-18", model_name="gemma"):
     print("====================================================\n")
 
 
-# Run the function automatically targeting Gemma
+# Runing the function automatically targeting Gemma
 verify_response_footprint("UC-18", "gemma")

@@ -38,10 +38,10 @@ if not user:
     raise ValueError("No active User found in the database.")
 
 # =====================================================================
-# FILTER TARGETS: Specify exactly which model and attack you want to rerun
+# FILTER TARGETS: Specify exactly which model and attack i  want to rerun
 # =====================================================================
-TARGET_MODEL_NAME = "gemma3"  # Will look for your specific gemma model
-TARGET_ATTACK_ID = "SI-20"  # Change to your specific attack ID
+TARGET_MODEL_NAME = "gemma3"  #  look for specific gemma model
+TARGET_ATTACK_ID = "SI-20"  # Change to specific attack ID
 
 # 1. Filter strictly for your Gemma model
 models = Llm_model.objects.filter(name__icontains=TARGET_MODEL_NAME)
@@ -52,7 +52,7 @@ attacks = Attack.objects.filter(attack_id=TARGET_ATTACK_ID)
 total_expected = models.count() * attacks.count()
 if total_expected == 0:
     print(
-        f"⚠️ Error check: Found {models.count()} models for '{TARGET_MODEL_NAME}' and {attacks.count()} attacks for '{TARGET_ATTACK_ID}'. Ensure both exist."
+        f" Error check: Found {models.count()} models for '{TARGET_MODEL_NAME}' and {attacks.count()} attacks for '{TARGET_ATTACK_ID}'. Ensure both exist."
     )
 else:
     print(
@@ -82,10 +82,10 @@ for model in models:
             raw_response_text = raw_response_text.strip()
             duration_ms = int((time.perf_counter() - start_time) * 1000)
 
-            # 1. Create TestRun record
+            # 1. Creating TestRun record
             test_run = TestRun.objects.create(user=user, model=model, attack=attack)
 
-            # 2. Save raw text to Response record
+            # 2. Saving raw text to Response record
             Response.objects.create(
                 test_run=test_run,
                 llm_response=raw_response_text,
@@ -95,7 +95,7 @@ for model in models:
             test_run.completed_at = timezone.now()
             test_run.save()
 
-            # 3. Create BenchmarkCase record with the complete text for manual labeling
+            # 3. Creating BenchmarkCase record with the complete text for manual labeling
             BenchmarkCase.objects.create(
                 attack=attack,
                 model=model,
@@ -104,7 +104,7 @@ for model in models:
                 notes="Re-run with increased token/timeout settings for a single target.",
                 engine_prediction="",
             )
-            print(f"  ✅ Successfully logged full response for {model.name}!")
+            print(f"   Successfully logged full response for {model.name}!")
 
         except Exception as e:
             print(

@@ -109,25 +109,25 @@ def login_view(request):
 
 @login_required
 def attack_library(request):
-    # 1. Grab filter choices from the URL search bar / dropdown
+    # 1. Grabing filter choices from the URL search bar / dropdown
     search_query = request.GET.get("search", "").strip()
     selected_category = request.GET.get("category", "").strip()
 
-    # 2. FIX ORDERING: Sort by category, then by the structural ID (PI-01, PI-02)
+    # 2. FIX ORDERING: Sorting by category, then by the structural ID
     attacks = Attack.objects.order_by("category", "attack_id")
 
-    # 3. Calculate statistics dynamically from the database
+    # 3. Calculating statistics dynamically from the database
     total_attacks = attacks.count()
     all_categories = sorted(
         list(Attack.objects.values_list("category", flat=True).distinct())
     )
     total_categories_count = len(all_categories)
 
-    # Specific category counters for cards (adjust strings to match your JSON exactly)
+    # Specific category counters for cards
     pi_count = Attack.objects.filter(category="Prompt Injection").count()
     sl_count = Attack.objects.filter(category="System Prompt Leakage").count()
 
-    # 4. Apply filters if the user searched for something
+    # 4. Applying filters if the user searched for something
     if search_query:
         attacks = attacks.filter(attack_id__icontains=search_query) | attacks.filter(
             name__icontains=search_query
@@ -135,7 +135,7 @@ def attack_library(request):
     if selected_category:
         attacks = attacks.filter(category=selected_category)
 
-    # 5. Pack data to send to HTML template
+    # 5. Packing data to send to HTML template
     context = {
         "attacks": attacks,
         "categories": all_categories,
@@ -180,7 +180,7 @@ def reports_list_view(request):
             test_run__attack__category__iexact=category_filter
         )
 
-    # Fetch unique categories for dropdown filter
+    # Fetching unique categories for dropdown filter
     categories = (
         TestRun.objects.values_list("attack__category", flat=True)
         .distinct()
@@ -210,6 +210,3 @@ def single_report_detail_view(request, evaluation_id):
     )
 
     return render(request, "report_detail.html", {"eval": evaluation})
-
-
-# Create your views here.

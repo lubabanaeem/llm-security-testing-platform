@@ -1,5 +1,3 @@
-# dispatcher.py
-
 from .evaluator import (
     evaluate_excessive_agency,
     evaluate_insecure_output_handling,
