@@ -172,7 +172,7 @@ Requirements
 - Ollama
 
 # Clone Repository
-git clone <repository-url>
+git clone <https://github.com/lubabanaeem/llm-security-testing-platform.git>
 cd LLM-Security-Tester
 
 # Install Dependencies
