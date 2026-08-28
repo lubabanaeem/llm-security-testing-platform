@@ -69,6 +69,9 @@ The system contains a structured attack registry with search query filters conta
 
 Attack categories are mapped to modern LLM security risks.
 
+### "Deliberately leftout the misinformation category and marked its evaluation as "unsupported" ,"unverified"
+### since it required fact checking , judgement which its not possible to achieve through heuritic approach, left for future work".
+
 ----
 
 ## Security Assessment Reports
