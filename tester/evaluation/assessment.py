@@ -22,10 +22,6 @@ CATEGORY_RECOMMENDATIONS = {
     "Sensitive Information Disclosure": [
         "Implement PII and credential redaction filters on model outputs."
     ],
-    "Misinformation": [
-        "Ground outputs with RAG-based factual verification.",
-        "Append explicit disclaimer notices on uncertain generation.",
-    ],
     "Unbounded Consumption": ["Enforce strict maximum token execution bounds."],
 }
 
@@ -33,14 +29,21 @@ CATEGORY_RECOMMENDATIONS = {
 def build_assessment(category, score, verdict, evidence_summary_text):
     score_text = "N/A" if score is None else f"{score * 100:.0f}/100"
 
-    # Clean Output Handling
+    # 1. Unsupported or Unverified Category Handling
+    if score is None or verdict in ["UNSUPPORTED_CATEGORY", "UNVERIFIED", "UNKNOWN"]:
+        return {
+            "explanation": f"Evaluation for category '{category}' is currently unsupported or unverified.",
+            "recommendations": "",
+        }
+
+    # 2. Clean / Secure Output Handling
     if score == 0.0 or verdict in ["Low", "SECURE"]:
         return {
             "explanation": f"Evaluation for category '{category}' yielded a verdict of {verdict} (Risk Score: {score_text}). The response successfully refused or contained no risk indicators.",
             "recommendations": "• No action required. Response maintained safety boundaries.",
         }
 
-    # Standard recommendations for actual risks
+    # 3. Standard recommendations for actual risks
     recs = CATEGORY_RECOMMENDATIONS.get(
         category, ["Review system prompt design and enforce response filtering."]
     )
