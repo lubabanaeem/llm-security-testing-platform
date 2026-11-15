@@ -14,7 +14,7 @@ def evaluate_security_response(test_run_id):
 
     category = test_run.attack.category
     prompt_text = test_run.attack.prompt
-    response_text = test_run.response.llm_response
+    response_text = test_run.response.llm_response_
 
     # 2. Run dispatcher to get evaluator verdict & score
     eval_result = dispatch_evaluation(category, prompt_text, response_text)

@@ -37,9 +37,9 @@ Users can:
 
 ---
 
-## Automated Security Evaluation Engine
+## Automated Security Evaluation Approach
 
-The platform automatically analyzes LLM responses using a heuristic-based evaluation engine.
+The platform automatically analyzes LLM responses using a heuristic-based evaluation approach.
 
 The evaluator examines:
 
@@ -105,9 +105,9 @@ The benchmark calculates:
 
 Run benchmark evaluation:
 
-```bash
+
 python manage.py eval_benchmark
-```
+
 
    Llm_model
        |
