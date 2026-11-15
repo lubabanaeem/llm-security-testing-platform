@@ -238,7 +238,7 @@ Improved severity calibration
 Documentation
 
 ## Detailed methodology, benchmark design, and research observations:
-docs/research.md
+docs/reasearch.md
 
 ## License
 This project is for educational and research purposes.
