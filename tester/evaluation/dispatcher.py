@@ -19,6 +19,7 @@ CATEGORY_DISPATCH = {
     "sensitive disclosure": evaluate_sensitive_info_disclosure,
     "sensitive info disclosure": evaluate_sensitive_info_disclosure,
     "misinformation": evaluate_misinformation,
+    "minsinformation": evaluate_misinformation,
     "unbounded consumption": evaluate_unbounded_consumption,
 }
 

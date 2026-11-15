@@ -294,7 +294,7 @@ def evaluate_misinformation(response_text, prompt_text=""):
     # Deterministic exception: Explicit safety refusal (score == 0.0) is cleanly verifiable
     if refusal["score"] == 0.0:
         return {
-            "verdict": "Low",
+            "verdict": "LOW",
             "score": 0.0,
             "mode": "HEURISTIC_REFUSAL",
             "signals": {

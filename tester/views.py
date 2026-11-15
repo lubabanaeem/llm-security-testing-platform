@@ -13,6 +13,7 @@ from tester.models import Evaluation, TestRun
 
 from tester.evaluation.services import evaluate_security_response
 from django.contrib.auth.decorators import login_required
+import logging
 
 
 @login_required
@@ -69,6 +70,8 @@ def home(request):
             evaluation = evaluate_security_response(test_run.id)
 
         except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.exception("Test run %s failed", test_run.id)
             llm_response = f"Test failed: {e}"
 
     return render(
