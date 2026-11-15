@@ -166,7 +166,6 @@ The automated evaluator was subjected to a gap-analysis audit using a diverse 45
 | Total Evaluated Cases | 45 |
 | Exact Matches | 29 |
 | Exact Match Accuracy | 64.44% |
-| Severity Distance Accuracy | 79.26% |
 | Mean Absolute Error (MAE) | 0.6222 |
 
 **MAE by Threat Category**
