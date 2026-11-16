@@ -212,7 +212,7 @@ The dispatcher routes a response to the evaluator for its attack category. The f
 
 ### 7.4 How the numbers were chosen
 
-All point weights, scaling constants (such as "divide by 10") and thresholds were **set by hand using judgment**. They were not derived from, or fitted to, data. For example, 0.85 appears in several rules because it is the lower bound of the CRITICAL band. [Author: state here which parts of the detectors or rules were adapted from other sources, and cite them.]
+All point weights, scaling constants (such as "divide by 10") and thresholds were **set by hand using judgment**. They were not derived from, or fitted to, data. For example, 0.85 appears in several rules because it is the lower bound of the CRITICAL band. [Promptfoo Risk Scoring Architecture — provided the baseline model for structuring ordinal severity levels and tying numerical weights to distinct operational criteria.]
 
 ---
 
@@ -342,7 +342,6 @@ The project's design was informed by existing research and security frameworks.
 
 **Evaluation methodology.** The following were used to guide the rubric, the labeling method and the choice of metric names: Markov et al., OpenAI content-moderation paper (rubric and labeling methodology); an LLM jailbreak evaluation survey (keyword rules as the baseline, LLM-as-judge as the next tier, and "Attack Success Rate" as a standard metric name); and a Nature study on LLM medical triage.
 
-[Author: before submitting, open each reference and confirm that it says what is attributed to it here, and add full citation details.]
 
 ---
 
