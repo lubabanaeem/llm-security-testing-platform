@@ -235,7 +235,7 @@ llm-security-testing-platform/
 
 ## Further reading
 
-Methodology, benchmark design, results and error analysis: [`docs/research.md`](docs/research.md)
+Methodology, benchmark design, results and error analysis: [`research.md`](research.md)
 
 ## License
 
