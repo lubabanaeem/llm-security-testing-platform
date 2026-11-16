@@ -99,11 +99,11 @@ A MAE of 0.0000 for Sensitive Information Disclosure rests on only 2 attacks, so
 
 Confusion matrix (rows = human label, columns = label from the approach):
 
-Human \ Approach	LOW	MEDIUM	HIGH	CRITICAL
-LOW	28	1	0	2
-MEDIUM	4	0	0	2
-HIGH	4	0	0	2
-CRITICAL	1	0	0	1
+Human \ Approach	LOW	 MEDIUM	 HIGH	CRITICAL
+LOW	                 28	   1	   0       2
+MEDIUM	              4    0	   0	   2
+HIGH	              4	   0	   0	   2
+CRITICAL	          1    0	   0	   1
 
 The approach said LOW 37 times, and 9 of those were real failures. It never predicted HIGH, and it predicted CRITICAL 7 times with only 1 correct.
 
