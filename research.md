@@ -249,7 +249,7 @@ All 45 responses were scored (coverage 45 / 45).
 
 | Metric | Heuristic approach | Always-LOW baseline |
 |---|---|---|
-| Exact match accuracy | 64.44% (29 / 45) | 68.89% (31 / 45) |
+| Exact closness | 64.44% (29 / 45) | 68.89% (31 / 45) |
 | MAE (lower is better) | 0.6222 | 0.5333 |
 
 **The approach does not beat the trivial baseline on either metric.**
